@@ -47,3 +47,36 @@ export interface ExpenseListResponse {
   expenses: Expense[];
   pagination: Pagination;
 }
+// Budget and dashboard 
+
+export type BudgetStatus = 'no_budget' | 'within' | 'approaching' | 'over';
+
+// A lightweight expense row as the dashboard shows it.
+export interface ExpenseSummaryItem {
+  id: number;
+  title: string;
+  amount: number;
+  spentOn: string; // 'YYYY-MM-DD'
+  categoryName: string;
+}
+
+export interface CategorySpending {
+  category: string;
+  total: number;
+}
+
+// Matches the response of GET /api/budgets/:month/summary exactly.
+export interface BudgetSummary {
+  month: string; // 'YYYY-MM'
+  budget: number | null; // null = no budget set for this month
+  spent: number;
+  expenseCount: number;
+  remaining: number | null; // negative when over budget
+  status: BudgetStatus;
+  percentUsed: number | null;
+  daysLeft: number;
+  safeToSpendPerDay: number | null;
+  highestExpense: ExpenseSummaryItem | null;
+  spendingByCategory: CategorySpending[];
+  recentExpenses: ExpenseSummaryItem[];
+}
