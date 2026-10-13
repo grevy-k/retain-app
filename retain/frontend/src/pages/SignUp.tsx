@@ -1,46 +1,37 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Alert, Box, Button, Link, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Link, TextField, Typography } from '@mui/material';
 import AuthLayout from '../components/AuthLayout';
 import PasswordField from '../components/PasswordField';
 import { useAuth } from '../hooks/useAuth';
 import { getErrorMessage } from '../api/client';
 
-export default function SignUp() {
-  const { signUp } = useAuth();
-  const [name, setName] = useState('');
+export default function SignIn() {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-// Check if the confirm password field is filled and doesn't match the password.
-
-  const passwordsMismatch = confirmPassword.length > 0 && confirmPassword !== password;
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+    event.preventDefault(); // Prevent the default form submission behavior (page reload).
     setError(null);
 
-    // Validate the form fields before submitting.
-    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
-      setError('Please fill in all fields.');
-      return;
-    }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+    if (!email.trim() || !password) {
+      setError('Please enter your email and password.');
       return;
     }
 
     setSubmitting(true);
     try {
-      // Call the signUp function from the auth context to create a new account.
-      await signUp(name, email, password);
+      await Promise.all([
+        signIn(email, password),
+        delay(2000),
+      ]);
+      // The user is now signed in. The AuthProvider will update the context, and the ProtectedRoute will redirect them to their intended destination.
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -49,19 +40,10 @@ export default function SignUp() {
   }
 
   return (
-    <AuthLayout title="Create your account" subtitle="Start tracking your spending in a minute.">
+    <AuthLayout title="Welcome back" subtitle="Sign in to see where your money went.">
       <Box component="form" onSubmit={handleSubmit} noValidate>
         {error && <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>}
 
-        <TextField
-          label="Full name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          fullWidth
-          margin="normal"
-          autoComplete="name"
-          autoFocus
-        />
         <TextField
           label="Email"
           type="email"
@@ -70,31 +52,23 @@ export default function SignUp() {
           fullWidth
           margin="normal"
           autoComplete="email"
+          autoFocus
         />
         <PasswordField
           label="Password"
           value={password}
           onChange={setPassword}
-          helperText="At least 8 characters"
-          autoComplete="new-password"
-        />
-        <PasswordField
-          label="Confirm password"
-          value={confirmPassword}
-          onChange={setConfirmPassword}
-          error={passwordsMismatch}
-          helperText={passwordsMismatch ? 'Passwords do not match' : undefined}
-          autoComplete="new-password"
+          autoComplete="current-password"
         />
 
         <Button type="submit" variant="contained" size="large" fullWidth disabled={submitting} sx={{ mt: 2 }}>
-          {submitting ? 'Creating account…' : 'Create account'}
+          {submitting ? <CircularProgress size={24} color="inherit" /> : 'Sign in'}
         </Button>
       </Box>
 
       <Typography variant="body2" sx={{ mt: 3, textAlign: 'center' }}>
-        Already have an account?{' '}
-        <Link component={RouterLink} to="/signin">Sign in</Link>
+        New to Retain?{' '}
+        <Link component={RouterLink} to="/signup">Create an account</Link>
       </Typography>
     </AuthLayout>
   );

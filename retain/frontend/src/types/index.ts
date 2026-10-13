@@ -14,3 +14,36 @@ export interface AuthResponse {
   token: string;
   user: User;
 }
+
+export type PaymentMethod = 'cash' | 'card' | 'mobile_money' | 'bank_transfer' | 'other';
+
+export type SortOption = 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc';
+
+export interface Category {
+  id: number;
+  name: string;
+  is_default: boolean; // true only for "Uncategorized"
+}
+
+export interface Expense {
+  id: number;
+  title: string;
+  amount: number;
+  spentOn: string; // 'YYYY-MM-DD'
+  paymentMethod: PaymentMethod;
+  notes: string | null;
+  categoryId: number;
+  categoryName: string;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface ExpenseListResponse {
+  expenses: Expense[];
+  pagination: Pagination;
+}

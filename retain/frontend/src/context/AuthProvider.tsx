@@ -44,20 +44,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
+    const startTime = Date.now();
+
     const data = await apiRequest<AuthResponse>('/auth/signin', {
       method: 'POST',
       body: { email, password },
     });
+
     tokenStore.set(data.token);
+
+    const remainingTime = 2000 - (Date.now() - startTime);
+    if (remainingTime > 0) {
+      await new Promise((resolve) => setTimeout(resolve, remainingTime));
+    }
+
     setUser(data.user);
   }, []);
 
   const signUp = useCallback(async (name: string, email: string, password: string) => {
+    const startTime = Date.now();
+
     const data = await apiRequest<AuthResponse>('/auth/signup', {
       method: 'POST',
       body: { name, email, password },
     });
+
     tokenStore.set(data.token);
+
+    const remainingTime = 2000 - (Date.now() - startTime);
+    if (remainingTime > 0) {
+      await new Promise((resolve) => setTimeout(resolve, remainingTime));
+    }
+
     setUser(data.user);
   }, []);
 

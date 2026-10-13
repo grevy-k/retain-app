@@ -1,0 +1,31 @@
+// Currency comes from .env so it can be changed without touching code.
+const CURRENCY = (import.meta.env.VITE_CURRENCY as string | undefined) || 'USD';
+
+const moneyFormatter = new Intl.NumberFormat(undefined, {
+  style: 'currency',
+  currency: CURRENCY,
+  maximumFractionDigits: 2,
+});
+
+export function formatMoney(amount: number): string {
+  return moneyFormatter.format(amount);
+}
+
+// Shows '2026-10-08' as '8 Oct 2026'. We build the Date from its parts
+// (instead of new Date('2026-10-08')) so timezones can never shift the day.
+export function formatDate(isoDate: string): string {
+  const [year, month, day] = isoDate.slice(0, 10).split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+// Today's date as 'YYYY-MM-DD' in the user's own timezone (toISOString would use UTC).
+export function todayISO(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${now.getFullYear()}-${month}-${day}`;
+}

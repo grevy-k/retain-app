@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Alert, Box, Button, Link, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Link, TextField, Typography } from '@mui/material';
 import AuthLayout from '../components/AuthLayout';
 import PasswordField from '../components/PasswordField';
 import { useAuth } from '../hooks/useAuth';
@@ -13,6 +13,8 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); // Prevent the default form submission behavior (page reload).
@@ -25,7 +27,10 @@ export default function SignIn() {
 
     setSubmitting(true);
     try {
-      await signIn(email, password);
+      await Promise.all([
+        signIn(email, password),
+        delay(2000),
+      ]);
       // The user is now signed in. The AuthProvider will update the context, and the ProtectedRoute will redirect them to their intended destination.
     } catch (err) {
       setError(getErrorMessage(err));
@@ -57,7 +62,7 @@ export default function SignIn() {
         />
 
         <Button type="submit" variant="contained" size="large" fullWidth disabled={submitting} sx={{ mt: 2 }}>
-          {submitting ? 'Signing in…' : 'Sign in'}
+          {submitting ? <CircularProgress size={24} color="inherit" /> : 'Sign in'}
         </Button>
       </Box>
 
