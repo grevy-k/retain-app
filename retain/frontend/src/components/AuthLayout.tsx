@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Box, Paper, Typography } from '@mui/material';
+import ThemeToggle from './ThemeToggle';
 
 interface AuthLayoutProps {
   title: string;
@@ -12,6 +13,7 @@ export default function AuthLayout({ title, subtitle, children }: AuthLayoutProp
   return (
     <Box
       sx={{
+        position: 'relative', 
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
@@ -20,6 +22,10 @@ export default function AuthLayout({ title, subtitle, children }: AuthLayoutProp
         background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',
       }}
     >
+      <Box sx={{ position: 'absolute', top: 16, right: 16, color: '#ffffff' }}>
+        <ThemeToggle />
+      </Box>
+
       <Paper elevation={6} sx={{ width: '100%', maxWidth: 420, p: { xs: 3, sm: 4 } }}>
         <Typography variant="h4" color="primary" sx={{ fontWeight: 800 }}>
           Retain

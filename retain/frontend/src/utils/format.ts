@@ -54,3 +54,11 @@ export function daysInMonth(month: string): number {
   const [year, mon] = month.split('-').map(Number);
   return new Date(year, mon, 0).getDate();
 }
+// Formats an ISO timestamp into a human-readable date string, e.g., '2026-10-08T14:30:00Z' becomes '8 Oct 2026'.
+export function formatTimestamp(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}

@@ -7,7 +7,7 @@ interface BudgetCardProps {
   onEdit: () => void;
 }
 
-// The status of the budget determines the color and label of the chip, and the message below the bar.
+// The status of the budget is shown as a colored chip and progress bar. The color and label are determined by the status.
 const STATUS_LOOK: Record<Exclude<BudgetStatus, 'no_budget'>, { label: string; color: 'success' | 'warning' | 'error' }> = {
   within: { label: 'Within budget', color: 'success' },
   approaching: { label: 'Approaching limit', color: 'warning' },
@@ -17,7 +17,7 @@ const STATUS_LOOK: Record<Exclude<BudgetStatus, 'no_budget'>, { label: string; c
 export default function BudgetCard({ summary, onEdit }: BudgetCardProps) {
   const { budget, spent, remaining, status, percentUsed, month } = summary;
 
-  // If there's no budget set, show a message and a button to set one. Otherwise show the bar, the status chip, and the numbers.
+  // No budget yet: invite the user to set one instead of showing empty numbers.
   if (budget === null || status === 'no_budget') {
     return (
       <Paper variant="outlined" sx={{ p: 3 }}>
@@ -31,12 +31,17 @@ export default function BudgetCard({ summary, onEdit }: BudgetCardProps) {
   }
 
   const look = STATUS_LOOK[status];
-  const overBy = spent - budget;
 
-  // A friendly sentence that matches the status.
+  // "Over" covers two cases that deserve different wording: spending exactly the budget
+  // (nothing left, but nothing overspent) and spending more than it. Compared in whole cents.
+  const reachedExactly = status === 'over' && Math.round(spent * 100) === Math.round(budget * 100);
+  const chipLabel = reachedExactly ? 'Budget reached' : look.label;
+
   const message =
     status === 'over'
-      ? `You're over budget by ${formatMoney(overBy)}.`
+      ? reachedExactly
+        ? "You've used your entire budget. Nothing is left to spend this month."
+        : `You're over budget by ${formatMoney(spent - budget)}.`
       : status === 'approaching'
         ? `Careful: you've used ${percentUsed}% of your budget.`
         : `You're on track: ${percentUsed}% of your budget used.`;
@@ -48,9 +53,8 @@ export default function BudgetCard({ summary, onEdit }: BudgetCardProps) {
         <Button size="small" onClick={onEdit}>Edit</Button>
       </Box>
 
-      <Chip label={look.label} color={look.color} size="small" sx={{ mb: 2 }} />
+      <Chip label={chipLabel} color={look.color} size="small" sx={{ mb: 2 }} />
 
-      {/* The bar caps at 100% so overspending doesn't break the layout */}
       <LinearProgress
         variant="determinate"
         value={Math.min(percentUsed ?? 0, 100)}

@@ -4,7 +4,7 @@ interface StatCardProps {
   label: string;
   value: string;
   caption?: string;
-  tone?: 'default' | 'danger' | 'highlight'; // highlight = Retain's signature card
+  tone?: 'default' | 'danger' | 'highlight'; 
 }
 
 // One headline number with a label and a short explanation underneath.
@@ -18,7 +18,8 @@ export default function StatCard({ label, value, caption, tone = 'default' }: St
         p: 2.5,
         height: '100%',
         ...(highlighted && {
-          color: 'primary.contrastText',
+          // Highlighted cards are used for the "safe to spend today" number, which is the most important one on the dashboard.
+          color: '#ffffff',
           border: 'none',
           background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',
         }),

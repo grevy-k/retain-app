@@ -4,6 +4,7 @@ import {
   AppBar, Box, Button, Container, IconButton, Menu, MenuItem, Toolbar, Typography,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../hooks/useAuth';
 import { useAppDispatch } from '../store/hooks';
 import { resetFilters } from '../store/filtersSlice';
@@ -61,13 +62,14 @@ export default function Layout() {
             ))}
           </Box>
 
-          {/* Spacer so Sign out stays on the right on phones */}
+          {/* Spacer so the right-hand controls stay on the right on phones */}
           <Box sx={{ flexGrow: { xs: 1, sm: 0 } }} />
 
-          <Typography variant="body2" sx={{ mr: 2, display: { xs: 'none', md: 'block' } }}>
+          <ThemeToggle />
+          <Typography variant="body2" sx={{ mx: 1, display: { xs: 'none', md: 'block' } }}>
             {user?.name}
           </Typography>
-          <Button color="inherit" variant="outlined" size="small" onClick={handleSignOut}>
+          <Button color="inherit" variant="outlined" size="small" onClick={handleSignOut} sx={{ ml: 1 }}>
             Sign out
           </Button>
         </Toolbar>

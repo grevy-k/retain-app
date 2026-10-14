@@ -8,7 +8,7 @@ import ExpenseFormDialog from '../components/ExpenseFormDialog';
 import DeleteExpenseDialog from '../components/DeleteExpenseDialog';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useExpenses } from '../hooks/useExpenses';
-import { selectActiveFilterCount, selectFilters, setPage, toQueryString } from '../store/filtersSlice';
+import { selectActiveFilterCount, selectFilters, setPage, toQueryString, updateFilters } from '../store/filtersSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import type { Category, Expense } from '../types';
 
@@ -42,6 +42,13 @@ export default function Expenses() {
       cancelled = true;
     };
   }, []);
+  useEffect(() => {
+    const stale =
+      categories.length > 0 &&
+      filters.categoryId !== '' &&
+      !categories.some((category) => String(category.id) === filters.categoryId);
+    if (stale) dispatch(updateFilters({ categoryId: '' }));
+  }, [categories, filters.categoryId, dispatch]);
 
   function openAddForm() {
     setEditing(null);

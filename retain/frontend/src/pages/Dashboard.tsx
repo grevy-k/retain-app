@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { Alert, Box, Button, CircularProgress, Snackbar, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Snackbar,
+  Typography,
+} from '@mui/material';
 import BudgetCard from '../components/BudgetCard';
 import BudgetDialog from '../components/BudgetDialog';
 import MonthPicker from '../components/MonthPicker';
@@ -17,7 +24,7 @@ export default function Dashboard() {
   const [toast, setToast] = useState<string | null>(null);
 
   const { summary, isLoading, error, reload } = useBudgetSummary(month);
-  const firstName = user?.name.split(' ')[0];
+  const firstName = user?.name ? user.name.split(' ')[0] : 'there';
 
   function handleBudgetSaved(message: string) {
     setBudgetOpen(false);
@@ -65,37 +72,71 @@ export default function Dashboard() {
   }
 
   return (
-    <>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+    <Box component="main" sx={{ pb: 4 }}>
+      {/* Dashboard Header */}
+      <Box
+        sx={{
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 2,
+          mb: 4,
+        }}
+      >
         <Box>
-          <Typography variant="h4">Hello, {firstName}</Typography>
-          <Typography color="text.secondary">Here's where your money went.</Typography>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }} gutterBottom>
+            Hello, {firstName}
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Here's where your money went.
+          </Typography>
         </Box>
         <MonthPicker month={month} onChange={setMonth} />
       </Box>
 
+      {/* Global Error Banner */}
       {error && (
-        <Alert severity="error" action={<Button color="inherit" size="small" onClick={reload}>Retry</Button>}>
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+          action={
+            <Button color="inherit" size="small" onClick={reload}>
+              Retry
+            </Button>
+          }
+        >
           {error}
         </Alert>
       )}
 
-      {/* First load only: nothing to show yet */}
+      {/* First load spinner */}
       {!summary && isLoading && (
-        <Box sx={{ display: 'grid', placeItems: 'center', py: 8 }}>
+        <Box sx={{ display: 'grid', placeItems: 'center', py: 12 }}>
           <CircularProgress />
         </Box>
       )}
 
+      {/* Main Content Dashboard */}
       {summary && (
-        // Dim the old numbers while a new month loads, rather than flashing a blank page.
-        <Box sx={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
+        <Box
+          sx={{
+            opacity: isLoading ? 0.5 : 1,
+            transition: 'opacity 0.2s ease-in-out',
+            pointerEvents: isLoading ? 'none' : 'auto',
+          }}
+        >
+          {/* Key Stat Cards Grid */}
           <Box
             sx={{
               display: 'grid',
-              gap: 2,
-              mb: 3,
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
+              gap: 2.5,
+              mb: 4,
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, 1fr)',
+                lg: 'repeat(4, 1fr)',
+              },
             }}
           >
             <StatCard
@@ -121,23 +162,30 @@ export default function Dashboard() {
             {renderFourthCard()}
           </Box>
 
+          {/* Primary Dashboard Grid (Budget Overview, Categories, Recent Activity) */}
           <Box
             sx={{
               display: 'grid',
-              gap: 2,
-              gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+              gap: 3,
+              gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' },
               alignItems: 'start',
             }}
           >
-            <BudgetCard summary={summary} onEdit={() => setBudgetOpen(true)} />
-            <SpendingByCategory items={summary.spendingByCategory} />
-            <Box sx={{ gridColumn: { md: 'span 2' } }}>
+            {/* Left Column: Budget details & Recent Expenses */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <BudgetCard summary={summary} onEdit={() => setBudgetOpen(true)} />
               <RecentExpenses items={summary.recentExpenses} />
+            </Box>
+
+            {/* Right Column: Spending Breakdowns */}
+            <Box sx={{ position: { lg: 'sticky' }, top: 24 }}>
+              <SpendingByCategory items={summary.spendingByCategory} />
             </Box>
           </Box>
         </Box>
       )}
 
+      {/* Budget Dialog Modal */}
       {budgetOpen && summary && (
         <BudgetDialog
           month={summary.month}
@@ -147,7 +195,13 @@ export default function Dashboard() {
         />
       )}
 
-      <Snackbar open={toast !== null} autoHideDuration={3000} onClose={() => setToast(null)} message={toast ?? ''} />
-    </>
+      {/* Notification Toast */}
+      <Snackbar
+        open={toast !== null}
+        autoHideDuration={3000}
+        onClose={() => setToast(null)}
+        message={toast ?? ''}
+      />
+    </Box>
   );
 }

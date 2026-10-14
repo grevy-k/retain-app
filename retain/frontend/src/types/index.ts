@@ -80,3 +80,50 @@ export interface BudgetSummary {
   spendingByCategory: CategorySpending[];
   recentExpenses: ExpenseSummaryItem[];
 }
+// --- Admin insights (matches GET /api/admin/insights) ---
+
+export interface AdminTotals {
+  users: number;
+  expenses: number;
+  totalValue: number;
+  expensesThisMonth: number;
+}
+
+export interface CategoryUsage {
+  id: number;
+  category: string;
+  expenseCount: number;
+}
+
+export interface AdminCategorySpending {
+  id: number;
+  category: string;
+  total: number;
+}
+
+export interface AdminRecentExpense {
+  id: number;
+  title: string;
+  amount: number;
+  spentOn: string; // 'YYYY-MM-DD'
+  createdAt: string; // exact moment it was recorded
+  categoryName: string;
+  userName: string;
+}
+
+export interface AdminRecentUser {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+  createdAt: string;
+}
+
+export interface AdminInsights {
+  totals: AdminTotals;
+  spendingByCategory: AdminCategorySpending[];
+  topCategories: CategoryUsage[];
+  bottomCategories: CategoryUsage[];
+  recentExpenses: AdminRecentExpense[];
+  recentUsers: AdminRecentUser[];
+}

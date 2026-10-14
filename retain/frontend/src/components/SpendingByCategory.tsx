@@ -3,19 +3,24 @@ import { formatMoney } from '../utils/format';
 import type { CategorySpending } from '../types';
 
 interface SpendingByCategoryProps {
-  items: CategorySpending[]; // already sorted biggest first by the backend
+  items: CategorySpending[]; 
+  title?: string;
+  emptyMessage?: string;
 }
 
-// Show a list of categories with their total spending and a bar showing their share of the total.
-export default function SpendingByCategory({ items }: SpendingByCategoryProps) {
+export default function SpendingByCategory({
+  items,
+  title = 'Spending by category',
+  emptyMessage = 'No spending recorded this month.',
+}: SpendingByCategoryProps) {
   const grandTotal = items.reduce((sum, item) => sum + item.total, 0);
 
   return (
     <Paper variant="outlined" sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>Spending by category</Typography>
+      <Typography variant="h6" gutterBottom>{title}</Typography>
 
       {items.length === 0 ? (
-        <Typography color="text.secondary">No spending recorded this month.</Typography>
+        <Typography color="text.secondary">{emptyMessage}</Typography>
       ) : (
         items.map((item) => {
           const share = grandTotal > 0 ? (item.total / grandTotal) * 100 : 0;

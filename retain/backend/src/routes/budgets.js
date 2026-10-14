@@ -15,10 +15,20 @@ function currentMonth() {
 }
 
 // "approaching" starts at 80% of the budget.
+// Turns spent/budget into the three states the brief asks for.
+// "approaching" starts at 80% of the budget.
 function budgetStatus(spent, budget) {
   if (budget === null) return 'no_budget';
-  if (spent > budget) return 'over';
-  if (spent >= budget * 0.8) return 'approaching';
+
+  // Round to cents to avoid floating point weirdness. 0.1 + 0.2 !== 0.3 in JS.
+  const spentCents = Math.round(spent * 100);
+  const budgetCents = Math.round(budget * 100);
+
+  // If the budget is 0, any spending is "over". If the budget is > 0, only spending equal to or greater than the budget is "over".
+  if (spentCents > budgetCents) return 'over';
+  if (budgetCents > 0 && spentCents === budgetCents) return 'over';
+
+  if (spentCents >= budgetCents * 0.8) return 'approaching';
   return 'within';
 }
 
@@ -114,7 +124,8 @@ router.get('/:month/summary', asyncHandler(async (req, res) => {
     expenseCount: count,
     remaining,
     status: budgetStatus(spent, budget),
-    percentUsed: budget ? Math.round((spent / budget) * 100) : null,
+        // Rounded DOWN so "100%" only ever appears once the budget is actually reached.
+    percentUsed: budget ? Math.floor((spent / budget) * 100) : null,
     daysLeft,
     safeToSpendPerDay: safeToSpendPerDay === null ? null : Math.round(safeToSpendPerDay * 100) / 100,
     highestExpense: highest.rows[0] || null,

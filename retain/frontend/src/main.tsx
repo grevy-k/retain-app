@@ -2,25 +2,23 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { CssBaseline, ThemeProvider } from '@mui/material';
 import './index.css';
 import App from './App';
-import { theme } from './theme';
 import { store } from './store';
 import { AuthProvider } from './context/AuthProvider';
+import { ThemeModeProvider } from './context/ThemeModeProvider';
 
-// The root of the React app. Wraps the app in providers for Redux, MUI theme, and authentication context.
+// The entry point of the application. Renders the App component inside a StrictMode wrapper, with Redux, React Router, AuthProvider, and ThemeModeProvider contexts.
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+      <ThemeModeProvider>
         <BrowserRouter>
           <AuthProvider>
             <App />
           </AuthProvider>
         </BrowserRouter>
-      </ThemeProvider>
+      </ThemeModeProvider>
     </Provider>
   </StrictMode>
 );
