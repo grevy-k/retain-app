@@ -63,3 +63,32 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   return data as T;
 }
+// Download a file from the API and save it to the user's device. The server must send the file as an attachment.
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const token = tokenStore.get();
+
+  let response: Response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  } catch {
+    throw new ApiError('Cannot reach the server. Please check your connection and try again.', 0);
+  }
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new ApiError(data?.message ?? 'The download failed.', response.status);
+  }
+
+  // Turn the response into a temporary link and click it, which makes the browser save the file.
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}

@@ -1,39 +1,59 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import type { PaletteMode } from '@mui/material';
 import { ThemeModeContext } from './themeModeContext';
-import type { ThemeModeContextValue } from './themeModeContext';
+import type { ThemeModeContextValue, ThemePreference } from './themeModeContext';
 import { buildTheme } from '../theme';
 
+// Same key as before, so anyone who already picked light or dark keeps their choice.
 const STORAGE_KEY = 'retain_theme_mode';
+const DARK_QUERY = '(prefers-color-scheme: dark)';
 
-// A saved choice wins. With none saved, follow the device's light/dark setting.
-function getInitialMode(): PaletteMode {
+function getInitialPreference(): ThemePreference {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === 'light' || saved === 'dark') return saved;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'system';
 }
 
-// Owns the current mode and applies the matching MUI theme to everything inside it.
+// Owns the user's theme choice and applies the matching MUI theme to everything inside it.
 export function ThemeModeProvider({ children }: { children: ReactNode }) {
-  // Initialize the theme mode based on the user's preference or the device's default.
-  const [mode, setMode] = useState<PaletteMode>(getInitialMode);
+  const [preference, setPreferenceState] = useState<ThemePreference>(getInitialPreference);
 
+  // Track the device setting separately so "System" can react if it changes while the app is open.
+  const [systemIsDark, setSystemIsDark] = useState<boolean>(() => window.matchMedia(DARK_QUERY).matches);
+
+  useEffect(() => {
+    const query = window.matchMedia(DARK_QUERY);
+    const handleChange = (event: MediaQueryListEvent) => setSystemIsDark(event.matches);
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, []);
+
+  // The mode actually shown: an explicit choice wins, otherwise follow the device.
+  const mode: PaletteMode = preference === 'system' ? (systemIsDark ? 'dark' : 'light') : preference;
+
+  const setPreference = useCallback((next: ThemePreference) => {
+    setPreferenceState(next);
+    localStorage.setItem(STORAGE_KEY, next);
+  }, []);
+
+  // The top-bar button always switches to the opposite of what you're seeing.
   const toggleMode = useCallback(() => {
-    const next: PaletteMode = mode === 'dark' ? 'light' : 'dark';
-    setMode(next);
-    localStorage.setItem(STORAGE_KEY, next); // remember the explicit choice
-  }, [mode]);
+    setPreference(mode === 'dark' ? 'light' : 'dark');
+  }, [mode, setPreference]);
 
-  // Rebuild the theme only when the mode actually changes.
+  // Rebuild the theme only when the shown mode actually changes.
   const theme = useMemo(() => buildTheme(mode), [mode]);
-  const value = useMemo<ThemeModeContextValue>(() => ({ mode, toggleMode }), [mode, toggleMode]);
+  const value = useMemo<ThemeModeContextValue>(
+    () => ({ mode, preference, setPreference, toggleMode }),
+    [mode, preference, setPreference, toggleMode]
+  );
 
   return (
     <ThemeModeContext.Provider value={value}>
       <ThemeProvider theme={theme}>
-        {/* Apply the theme to the entire application */}
+        {/* enableColorScheme tells the browser to draw its own controls
+            (date pickers, scrollbars) in dark mode too */}
         <CssBaseline enableColorScheme />
         {children}
       </ThemeProvider>

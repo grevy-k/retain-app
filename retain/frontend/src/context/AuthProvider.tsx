@@ -9,7 +9,7 @@ import type { AuthResponse, User } from '../types';
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // true while we check a saved token on page load. If we don't have a saved token, we can skip the check and start with false.
+  // The app is loading while we check for a saved token and ask the server who it belongs to.
   const [isLoading, setIsLoading] = useState<boolean>(() => tokenStore.get() !== null);
 
   const signOut = useCallback(() => {
@@ -17,13 +17,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
-  // Let the API client sign us out automatically if the server rejects our token.
+  // If the API client gets a 401 while holding a token, it means the token is invalid or expired. Sign the user out automatically.
   useEffect(() => {
     setUnauthorizedHandler(signOut);
     return () => setUnauthorizedHandler(null);
   }, [signOut]);
 
-  // Restore the session on first load: ask the server who the saved token belongs to.
+  // On page load, if we have a saved token, ask the server who it belongs to. If it's invalid or expired, forget it.
   useEffect(() => {
     if (!tokenStore.get()) return;
 
@@ -44,40 +44,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const startTime = Date.now();
-
     const data = await apiRequest<AuthResponse>('/auth/signin', {
       method: 'POST',
       body: { email, password },
     });
-
     tokenStore.set(data.token);
-
-    const remainingTime = 2000 - (Date.now() - startTime);
-    if (remainingTime > 0) {
-      await new Promise((resolve) => setTimeout(resolve, remainingTime));
-    }
-
     setUser(data.user);
   }, []);
 
   const signUp = useCallback(async (name: string, email: string, password: string) => {
-    const startTime = Date.now();
-
     const data = await apiRequest<AuthResponse>('/auth/signup', {
       method: 'POST',
       body: { name, email, password },
     });
-
     tokenStore.set(data.token);
-
-    const remainingTime = 2000 - (Date.now() - startTime);
-    if (remainingTime > 0) {
-      await new Promise((resolve) => setTimeout(resolve, remainingTime));
-    }
-
     setUser(data.user);
   }, []);
+
+  // Replaces the stored user with a fresh copy from the server (e.g. after a name change).
+  const updateUser = useCallback((updated: User) => setUser(updated), []);
 
   // useMemo so consumers only re-render when something they read actually changes.
   const value = useMemo<AuthContextValue>(
@@ -89,8 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       signOut,
+      updateUser,
     }),
-    [user, isLoading, signIn, signUp, signOut]
+    [user, isLoading, signIn, signUp, signOut, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

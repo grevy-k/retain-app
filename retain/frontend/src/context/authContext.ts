@@ -10,6 +10,7 @@ export interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   signOut: () => void;
+  updateUser: (user: User) => void; // used after the profile changes, so the UI updates at once
 }
 
 // null default: useAuth() will throw a clear error if used outside the provider.

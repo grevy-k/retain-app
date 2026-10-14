@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useAppDispatch } from '../store/hooks';
 import { resetFilters } from '../store/filtersSlice';
 
-// The frame around every signed-in page: top bar, navigation, and the page content.
+// The main layout for the app. It includes the top bar and a container for the page content.
 export default function Layout() {
   const { user, isAdmin, signOut } = useAuth();
   const dispatch = useAppDispatch();
@@ -19,6 +19,7 @@ export default function Layout() {
   const links = [
     { label: 'Dashboard', to: '/dashboard' },
     { label: 'Expenses', to: '/expenses' },
+    {label: 'settings', to: '/settings'},
     ...(isAdmin ? [{ label: 'Admin', to: '/admin' }] : []),
   ];
 
