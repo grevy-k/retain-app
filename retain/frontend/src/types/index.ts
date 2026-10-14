@@ -127,3 +127,17 @@ export interface AdminInsights {
   recentExpenses: AdminRecentExpense[];
   recentUsers: AdminRecentUser[];
 }
+// Matches GET /api/admin/expenses (the "View more" list on the admin insights page).
+export interface AdminExpensesResponse {
+  expenses: AdminRecentExpense[];
+  pagination: Pagination;
+}
+// Matches GET /api/admin/users (the "View more" list on the admin insights page).
+export interface AdminUserRow extends AdminRecentUser {
+  expenseCount: number;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUserRow[];
+  pagination: Pagination;
+}

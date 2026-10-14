@@ -1,18 +1,16 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import FullPageSpinner from './FullPageSpinner';
 
-// Wraps every page that needs a signed-out visitor.
+// The opposite of ProtectedRoute: sign-in and sign-up pages are for signed-out people only.
 export default function GuestRoute() {
   const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
 
   if (isLoading) return <FullPageSpinner />;
 
+  // Once signed in (or signed up), everyone lands on the dashboard.
   if (isAuthenticated) {
-    // If the user is signed in, send them back to where they were going (or the dashboard if we don't know).
-    const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname;
-    return <Navigate to={from ?? '/dashboard'} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

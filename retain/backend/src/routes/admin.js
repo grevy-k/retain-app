@@ -5,11 +5,13 @@ const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+// One guard for the whole file: every route below is admin-only.
+// Order matters: requireAuth sets req.user, then requireAdmin checks its role.
 router.use(requireAuth, requireAdmin);
 
-// GET /api/admin/insights all platform insights in a single response.
+// GET /api/admin/insights: all platform insights in a single response.
 router.get('/insights', asyncHandler(async (req, res) => {
-  // The admin dashboard needs a lot of data, so we fetch it all in parallel.
+  // These queries don't depend on each other, so run them at the same time.
   const [
     totals,
     spendingByCategory,
@@ -18,7 +20,7 @@ router.get('/insights', asyncHandler(async (req, res) => {
     recentExpenses,
     recentUsers,
   ] = await Promise.all([
-    // Total counts and sums. The subqueries are fast because they use indexes.
+    // Headline numbers. COALESCE turns "no expenses yet" into 0 instead of null.
     db.query(`
       SELECT
         (SELECT COUNT(*) FROM users)::int                              AS users,
@@ -30,7 +32,7 @@ router.get('/insights', asyncHandler(async (req, res) => {
                                                                        AS "expensesThisMonth"
     `),
 
-    // Spending by category, including zero-use categories. The client can use this to draw a pie chart.
+    // Total spending per category. LEFT JOIN keeps categories that have no expenses (total 0).
     db.query(`
       SELECT c.id, c.name AS category, COALESCE(SUM(e.amount), 0)::float AS total
       FROM categories c
@@ -39,7 +41,7 @@ router.get('/insights', asyncHandler(async (req, res) => {
       ORDER BY total DESC, c.name ASC
     `),
 
-    // Top 5 categories by number of expenses. The client can use this to draw a bar chart.
+    // Most-used = highest number of expenses. Name is the tiebreaker so results are stable.
     db.query(`
       SELECT c.id, c.name AS category, COUNT(e.id)::int AS "expenseCount"
       FROM categories c
@@ -49,7 +51,7 @@ router.get('/insights', asyncHandler(async (req, res) => {
       LIMIT 5
     `),
 
-    // Bottom 5 categories by number of expenses. The client can use this to draw a bar chart.
+    // Least-used = lowest number of expenses (zero-use categories come first).
     db.query(`
       SELECT c.id, c.name AS category, COUNT(e.id)::int AS "expenseCount"
       FROM categories c
@@ -59,7 +61,7 @@ router.get('/insights', asyncHandler(async (req, res) => {
       LIMIT 5
     `),
 
-    // The 5 most recent expenses across all users. We select columns explicitly so the password hash can never leak.
+    // Newest expenses by when they were recorded (not the date they were spent on).
     db.query(`
       SELECT e.id, e.title, e.amount::float AS amount, e.spent_on AS "spentOn",
              e.created_at AS "createdAt", c.name AS "categoryName", u.name AS "userName"
@@ -89,4 +91,61 @@ router.get('/insights', asyncHandler(async (req, res) => {
   });
 }));
 
+// GET /api/admin/expenses?page=1&limit=10: every expense on the platform, newest first.
+router.get('/expenses', asyncHandler(async (req, res) => {
+  // Clamp the values so nobody can ask for page -5 or 100000 rows at once.
+  const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
+  const offset = (page - 1) * limit;
+
+  const [countResult, listResult] = await Promise.all([
+    db.query('SELECT COUNT(*)::int AS total FROM expenses'),
+    db.query(
+      `SELECT e.id, e.title, e.amount::float AS amount, e.spent_on AS "spentOn",
+              e.created_at AS "createdAt", c.name AS "categoryName", u.name AS "userName"
+       FROM expenses e
+       JOIN categories c ON c.id = e.category_id
+       JOIN users u ON u.id = e.user_id
+       ORDER BY e.created_at DESC, e.id DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    ),
+  ]);
+
+  const total = countResult.rows[0].total;
+
+  res.json({
+    expenses: listResult.rows,
+    pagination: { page, limit, total, totalPages: Math.max(Math.ceil(total / limit), 1) },
+  });
+}));
+
 module.exports = router;
+// GET /api/admin/users?page=1&limit=10: every registered user, newest first.
+// This is what the "View more" button on the recent-users card opens.
+router.get('/users', asyncHandler(async (req, res) => {
+  // Clamp the values so nobody can ask for page -5 or 100000 rows at once.
+  const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
+  const offset = (page - 1) * limit;
+
+  const [countResult, listResult] = await Promise.all([
+    db.query('SELECT COUNT(*)::int AS total FROM users'),
+    // Columns are listed explicitly so password_hash can never leak into the response.
+    db.query(
+      `SELECT u.id, u.name, u.email, u.role, u.created_at AS "createdAt",
+              (SELECT COUNT(*) FROM expenses e WHERE e.user_id = u.id)::int AS "expenseCount"
+       FROM users u
+       ORDER BY u.created_at DESC, u.id DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    ),
+  ]);
+
+  const total = countResult.rows[0].total;
+
+  res.json({
+    users: listResult.rows,
+    pagination: { page, limit, total, totalPages: Math.max(Math.ceil(total / limit), 1) },
+  });
+}));

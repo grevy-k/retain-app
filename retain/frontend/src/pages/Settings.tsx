@@ -35,7 +35,7 @@ export default function Settings() {
         <AppearanceSettings />
       </SettingsSection>
 
-      <SettingsSection title="Your data" description="Download every expense you've recorded as a spreadsheet-friendly CSV file.">
+      <SettingsSection title="Your data" description="Download every expense you've recorded as a spreadsheet (CSV file).">
         <DataExport onDone={setToast} />
       </SettingsSection>
 

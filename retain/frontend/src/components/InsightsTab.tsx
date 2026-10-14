@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { Alert, Box, Button, Chip, CircularProgress, Divider, Paper, Typography } from '@mui/material';
+import AllExpensesDialog from './AllExpensesDialog';
+import AllUsersDialog from './AllUsersDialog';
 import CategoryUsageList from './CategoryUsageList';
 import SpendingByCategory from './SpendingByCategory';
 import StatCard from './StatCard';
@@ -7,8 +10,12 @@ import { formatDate, formatMoney, formatTimestamp } from '../utils/format';
 import type { AdminInsights } from '../types';
 
 export default function InsightsTab() {
-  // Fetch the admin insights data from the API. The useApi hook handles loading, error, and data states. 
+  // Fetched when the tab opens, so switching back here always shows fresh numbers.
   const { data, isLoading, error, reload } = useApi<AdminInsights>('/admin/insights');
+
+  // The "View more" buttons open a dialog with a paginated list of every expense or user on the platform.
+  const [expensesOpen, setExpensesOpen] = useState(false);
+  const [usersOpen, setUsersOpen] = useState(false);
 
   if (error) {
     return (
@@ -28,9 +35,13 @@ export default function InsightsTab() {
 
   const { totals } = data;
 
+  // Only offer "View more" when there really are more items than the 5 shown.
+  const hasMoreExpenses = totals.expenses > data.recentExpenses.length;
+  const hasMoreUsers = totals.users > data.recentUsers.length;
+
   return (
     <Box sx={{ opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
-      {/* Main stats */}
+      {/* Headline numbers */}
       <Box
         sx={{
           display: 'grid',
@@ -80,6 +91,12 @@ export default function InsightsTab() {
               </Box>
             ))
           )}
+
+          {hasMoreExpenses && (
+            <Button sx={{ mt: 1 }} onClick={() => setExpensesOpen(true)}>
+              View more
+            </Button>
+          )}
         </Paper>
 
         <Paper variant="outlined" sx={{ p: 3 }}>
@@ -99,8 +116,18 @@ export default function InsightsTab() {
               </Box>
             </Box>
           ))}
+
+          {hasMoreUsers && (
+            <Button sx={{ mt: 1 }} onClick={() => setUsersOpen(true)}>
+              View more
+            </Button>
+          )}
         </Paper>
       </Box>
+
+      {/* The "View more" dialogs */}
+      {expensesOpen && <AllExpensesDialog onClose={() => setExpensesOpen(false)} />}
+      {usersOpen && <AllUsersDialog onClose={() => setUsersOpen(false)} />}
     </Box>
   );
 }

@@ -1,18 +1,17 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import FullPageSpinner from './FullPageSpinner';
 
 // Wraps every page that needs a signed-in user.
 export default function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
 
-  // If we're still checking the session, show a spinner. This can happen on page load while we check a saved token.
+  // While we check for a saved token on page load, show a spinner instead of flashing the sign-in screen.
   if (isLoading) return <FullPageSpinner />;
 
+  // If the user isn't signed in, send them to the sign-in page.
   if (!isAuthenticated) {
-    // If the user is not signed in, send them to the sign-in page. 
-    return <Navigate to="/signin" replace state={{ from: location }} />;
+    return <Navigate to="/signin" replace />;
   }
 
   return <Outlet />;
