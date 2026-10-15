@@ -7,6 +7,12 @@ const router = express.Router();
 
 // Every expense route needs a signed-in user.
 router.use(requireAuth);
+router.param('id', (req, res, next, id) => {
+  if (!/^\d{1,9}$/.test(id)) {
+    return res.status(404).json({ message: 'Expense not found.' });
+  }
+  next();
+});
 
 const PAYMENT_METHODS = ['cash', 'card', 'mobile_money', 'bank_transfer', 'other'];
 

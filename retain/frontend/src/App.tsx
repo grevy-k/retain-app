@@ -7,6 +7,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
+import ExpenseDetail from './pages/ExpenseDetail';
 import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
 import NotFound from './pages/NotFound';
@@ -25,6 +26,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/expenses" element={<Expenses />} />
+          <Route path="/expenses/:id" element={<ExpenseDetail />} />
           <Route path="/settings" element={<Settings />} />
 
           {/* ...and these also need the admin role */}

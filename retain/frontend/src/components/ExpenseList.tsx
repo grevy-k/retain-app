@@ -8,6 +8,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { paymentLabel } from '../constants';
 import { formatDate, formatMoney } from '../utils/format';
 import type { Expense } from '../types';
+import { Link as RouterLink } from 'react-router-dom';
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -47,7 +48,19 @@ export default function ExpenseList({ expenses, isLoading, onEdit, onDelete }: E
           <Card key={expense.id} variant="outlined">
             <CardContent sx={{ pb: '12px !important' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
-                <Typography sx={{ fontWeight: 600 }}>{expense.title}</Typography>
+                <Typography
+                  component={RouterLink}
+                  to={`/expenses/${expense.id}`}
+                  sx={{
+                    fontWeight: 600,
+                    color: 'inherit',
+                    textDecoration: 'none',
+                    display: 'block',
+                    '&:hover': { color: 'primary.main', textDecoration: 'underline' },
+                  }}
+                >
+                  {expense.title}
+                </Typography>
                 <Typography sx={{ fontWeight: 700 }} color="primary">
                   {formatMoney(expense.amount)}
                 </Typography>
@@ -90,7 +103,19 @@ export default function ExpenseList({ expenses, isLoading, onEdit, onDelete }: E
             <TableRow key={expense.id} hover>
               <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(expense.spentOn)}</TableCell>
               <TableCell>
-                <Typography sx={{ fontWeight: 600 }}>{expense.title}</Typography>
+                <Typography
+                  component={RouterLink}
+                  to={`/expenses/${expense.id}`}
+                  sx={{
+                    fontWeight: 600,
+                    color: 'inherit',
+                    textDecoration: 'none',
+                    display: 'block',
+                    '&:hover': { color: 'primary.main', textDecoration: 'underline' },
+                  }}
+                >
+                  {expense.title}
+                </Typography>
                 {expense.notes && (
                   <Typography variant="body2" color="text.secondary">
                     {expense.notes}
