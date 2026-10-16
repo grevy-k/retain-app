@@ -3,7 +3,7 @@
 **Keep more of what you earn.** Retain is a full-stack web app for tracking personal expenses and sticking to a monthly budget. Its signature feature is **"Safe to spend today"**: your remaining budget divided by the days left in the month, so you always know what you can spend today and still finish the month within budget.
 
 - **Live app:** [RETAIN WEB APP_](https://retain-app-i24b.onrender.com)
-- **API:** [_MY backend API URL after deployment_](https://retain-api-s2ww.onrender.com)
+- **API:** [_MY backend API URL after deployment](https://retain-api-s2ww.onrender.com)(after url add all the APIs /api/health...signin...) to check the back if its runnnig
 - **Demo accounts:** sign up for your own, or use `user@test.com` password `12345678`
 
 > The API runs on a free hosting tier that sleeps when idle, so the very first request after a quiet period can take around 30 to 60 seconds.
