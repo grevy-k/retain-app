@@ -136,6 +136,16 @@ psql -d retain -c "UPDATE users SET role='admin' WHERE email='you@example.com';"
 ```
 
 Sign out and back in to pick up the new role. For demo data, optionally run `psql -d retain -f backend/db/sample_data.sql` after editing the email inside it.
+## Demo data
+
+To fill a database with realistic demo data (a demo user, three months of expenses, budgets, and extra accounts so the admin pages doesn't look empty):
+
+```bash
+cd backend
+DEMO_PASSWORD="choose-a-password" npm run seed:demo
+```
+
+The script only touches its own demo accounts (emails ending in `@example.com`), can be re-run at any time to refresh the dates, and `node scripts/seed-demo.js --remove` deletes the demo data again.
 
 ### Environment variables
 
